@@ -1,3 +1,5 @@
 FROM node:22-alpine
 
-CMD ["node", "-e", "console.log('hi omg lol')"]
+COPY index.js index.js
+
+CMD ["node", "index.js"]
