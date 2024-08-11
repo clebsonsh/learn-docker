@@ -1,17 +1,13 @@
-# build stop
-FROM node:22-alpine as build
-WORKDIR /app
-COPY  package*.json .
+# build stage
+FROM node:20 AS node-builder
+WORKDIR /build
+COPY package-lock.json package.json ./
 RUN npm ci
-COPY  . .
+COPY . .
 
-# production step
-FROM alpine:3.19
-RUN apk add --update nodejs
-RUN addgroup -S node && adduser -S node -G node
-USER node
-RUN mkdir /home/node/app
-WORKDIR /home/node/app
-COPY --from=build --chown=node:node /app .
-CMD ["node", "server.js"]
+# runtime stage
+FROM gcr.io/distroless/nodejs20
+COPY --from=node-builder --chown=node:node /build /app
+WORKDIR /app
+CMD ["server.js"]
 
