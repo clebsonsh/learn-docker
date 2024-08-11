@@ -1,18 +1,17 @@
-FROM alpine:3.19
-
-RUN apk add --update nodejs npm
-
-RUN addgroup -S node && adduser -S node -G node
-
-USER node
-
-WORKDIR /home/node/app
-
-COPY --chown=node:node package*.json .
-
+# build stop
+FROM node:22-alpine as build
+WORKDIR /app
+COPY  package*.json .
 RUN npm ci
+COPY  . .
 
-COPY --chown=node:node . .
-
-CMD ["npm", "run", "start"]
+# production step
+FROM alpine:3.19
+RUN apk add --update nodejs
+RUN addgroup -S node && adduser -S node -G node
+USER node
+RUN mkdir /home/node/app
+WORKDIR /home/node/app
+COPY --from=build --chown=node:node /app .
+CMD ["node", "server.js"]
 
